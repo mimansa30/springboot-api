@@ -1,0 +1,92 @@
+import React, { useState, useEffect } from "react";
+import { AgGridReact } from "ag-grid-react"; // React Grid Logic
+import "ag-grid-community/styles/ag-grid.css"; // Core CSS
+import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
+
+const GridExample = () => {
+  const [rowData, setRowData] = useState([]);
+  const [serviceName, setServiceName] = useState("");
+
+  // Fetch all services when the component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/services/getAllServices", {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const jsonData = await response.json();
+        console.log("Fetched Services:", jsonData); // Log the data here
+        setRowData(jsonData);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fetch a single service by name
+  const fetchServiceByName = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/services/getServiceByName", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(serviceName),
+      });
+      const jsonData = await response.json();
+      console.log("Fetched Service by Name:", jsonData); // Log the data here
+      setRowData([jsonData]);
+    } catch (error) {
+      console.error("Error fetching service:", error);
+      setRowData([]); // Clear previous service details if there's an error
+      alert('Service not found or there was an error fetching the service');
+    }
+  };
+
+  const colDefs = [
+    { field: "id" },
+    { field: "name" },
+    { field: "description" },
+    { field: "healthStatus" },
+    {
+      field: "Start/Stop",
+      cellRenderer: props => (
+        <>
+          <button>start</button>
+          <button>stop</button>
+        </>
+      )
+    }
+  ];
+
+  const defaultColDef = {
+    flex: 1,
+  };
+
+  return (
+    <div>
+      <h1>All Services</h1>
+      <div
+        className="ag-theme-quartz"
+        style={{ width: "100%", height: "400px" }}
+      >
+        <AgGridReact
+          rowData={rowData}
+          columnDefs={colDefs}
+          defaultColDef={defaultColDef}
+        />
+      </div>
+      <h2>Find Service by Name</h2>
+      <input
+        type="text"
+        value={serviceName}
+        onChange={e => setServiceName(e.target.value)}
+        placeholder="Enter service name"
+      />
+      <button onClick={fetchServiceByName}>Fetch Service</button>
+    </div>
+  );
+};
+
+export default GridExample;
