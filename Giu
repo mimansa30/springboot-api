@@ -1,0 +1,81 @@
+import React, { useState, useEffect } from "react";
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import "./Grid.styles.css";
+
+const GridExample = () => {
+  const [rowData, setRowData] = useState([]);
+  const [serviceName, setServiceName] = useState("");
+
+  // Fetch all services
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/getAllServices", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const jsonData = await response.json();
+        setRowData(jsonData);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fetch a single service by name
+  const fetchServiceByName = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/getServiceByName", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(serviceName)
+      });
+      const jsonData = await response.json();
+      setRowData([jsonData]);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getAction = async (action) => {
+    try {
+      const response = await fetch("http://localhost:8080/action", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      const data = await response.text();
+      console.log(data); // Logging the response
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Services</h1>
+      <div className="ag-theme-quartz" style={{ width: "100%", height: "400px" }}>
+        <AgGridReact rowData={rowData} columnDefs={colDefs} />
+      </div>
+
+      <h2>Find Service by Name</h2>
+      <input
+        type="text"
+        value={serviceName}
+        onChange={(e) => setServiceName(e.target.value)}
+        placeholder="Enter service name"
+      />
+      <button onClick={fetchServiceByName}>Fetch Service</button>
+
+      <h2>Actions</h2>
+      <button onClick={() => getAction("start")}>Start Service</button>
+      <button onClick={() => getAction("stop")}>Stop Service</button>
+    </div>
+  );
+};
+
+export default GridExample;
