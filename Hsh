@@ -1,0 +1,14 @@
+const colDefs = [
+  { field: "serviceName" },
+  { field: "startupCommand" },
+  { field: "healthStatus" },
+  {
+    headerName: "Start/Stop",
+    cellRenderer: (params) => (
+      <>
+        <button onClick={() => { setServiceName(params.data.serviceName); handleAction("start"); }}>Start</button>
+        <button onClick={() => { setServiceName(params.data.serviceName); handleAction("stop"); }}>Stop</button>
+      </>
+    )
+  }
+];
