@@ -1,0 +1,21 @@
+public class ActionRequest {
+    private String action;
+    private String serviceName;
+
+    // Getters and Setters
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+}
