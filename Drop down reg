@@ -1,0 +1,16 @@
+import React from 'react';
+
+const RegionDropdown = ({ region, setRegion }) => {
+    const regions = ["APAC", "EMEA", "AMEK"];
+
+    return (
+        <select value={region} onChange={(e) => setRegion(e.target.value)} style={{ marginRight: '10px' }}>
+            <option value="">Select Region</option>
+            {regions.map(region => (
+                <option key={region} value={region}>{region}</option>
+            ))}
+        </select>
+    );
+};
+
+export default RegionDropdown;
