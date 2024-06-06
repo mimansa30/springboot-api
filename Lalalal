@@ -1,0 +1,48 @@
+import React, { useState, useEffect } from 'react';
+import EnvironmentDropdown from "./EnvironmentDropdown";
+import RegionDropdown from "./RegionDropdown";
+
+const FilterComponent = ({ setFilteredData }) => {
+    const [region, setRegion] = useState("");
+    const [environment, setEnvironment] = useState("");
+    const [allServices, setAllServices] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch("http://localhost:8080/api/services/services", {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                const jsonData = await response.json();
+                setAllServices(jsonData);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const filterServices = () => {
+        if (!Array.isArray(allServices)) {
+            console.error("Data is not an array:", allServices);
+            return;
+        }
+
+        const filteredData = allServices.filter(service => 
+            service.region === region && service.environment === environment
+        );
+        setFilteredData(filteredData);
+    };
+
+    return (
+        <div style={{ display: 'flex', marginBottom: '20px' }}>
+            <RegionDropdown region={region} setRegion={setRegion} />
+            <EnvironmentDropdown environment={environment} setEnvironment={setEnvironment} />
+            <button onClick={filterServices} style={{ padding: '5px 10px' }}>Filter</button>
+        </div>
+    );
+};
+
+export default FilterComponent;
