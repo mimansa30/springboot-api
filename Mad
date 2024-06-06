@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react"; // React Grid Logic
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
-import "ag-grid-community/styles/ag-theme-alpine.css"; // Theme
+import "ag-grid-community/styles/ag-theme-alpine.css"; // Theme CSS
 
 const GridExample = () => {
     const [rowData, setRowData] = useState([]);
     const [service, setService] = useState("");
 
-    // Fetch all services
     useEffect(() => {
         const fetchData = async () => {
             const response = await fetch("http://localhost:8080/api/services/services", {
@@ -21,7 +20,6 @@ const GridExample = () => {
         fetchData();
     }, []);
 
-    // Fetch a single service by name
     const fetchServiceByName = async () => {
         const response = await fetch("http://localhost:8080/api/services/getServiceByName", {
             method: 'POST',
@@ -50,8 +48,6 @@ const GridExample = () => {
         { field: "box" },
         { field: "service" },
         { field: "startCommand" },
-        { field: "stage" },
-        { field: "healthStatus" },
         {
             headerName: "Action",
             cellRendererFramework: (params) => (
@@ -81,4 +77,11 @@ const GridExample = () => {
                         placeholder="Enter service name"
                         style={{ marginRight: '10px' }}
                     />
-                    <button onClick={fetchServiceByName} style={{ 
+                    <button onClick={fetchServiceByName} style={{ padding: '5px 10px' }}>Fetch Service</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default GridExample; 
