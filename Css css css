@@ -1,0 +1,41 @@
+/* Ensure the grid has sufficient height and width */
+.ag-grid-full-width {
+    height: 500px;
+    width: 100%;
+}
+
+/* Style for the grid container */
+.grid-container {
+    margin: 20px;
+}
+
+/* Styling for the service search section */
+.service-search {
+    margin: 20px 0;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+}
+
+.input-container input {
+    margin-right: 10px;
+}
+
+.fetch-button {
+    padding: 5px 10px;
+}
+
+/* Ensure buttons within the grid are displayed correctly */
+.ag-cell {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+button {
+    padding: 5px 10px;
+    margin: 2px;
+    cursor: pointer;
+}
