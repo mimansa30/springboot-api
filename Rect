@@ -1,0 +1,94 @@
+import React, { useState, useEffect } from "react";
+import { AgGridReact } from "ag-grid-react"; // React Grid Logic
+import "ag-grid-community/styles/ag-grid.css"; // Core CSS
+import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
+import "./Grid.styles.css";
+
+const GridExample = () => {
+    const [rowData, setRowData] = useState([]);
+    const [service, setService] = useState("");
+
+    // Fetch all services
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetch("http://localhost:8080/api/services/services", {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const jsonData = await response.json();
+            setRowData(jsonData);
+            console.log(jsonData);
+        };
+
+        fetchData();
+    }, []);
+
+    // Fetch a single service by name
+    const fetchServiceByName = async () => {
+        const response = await fetch("http://localhost:8080/api/services/getServiceByName", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service }),
+        });
+        const jsonData = await response.json();
+        setRowData([jsonData]);
+        console.log(jsonData);
+    };
+
+    const getAction = async (service, flag_value) => {
+        const response = await fetch("http://localhost:8080/api/services/startService", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service: service.service }),
+        });
+        
+        const res = await response.text();
+        console.log(res);
+    };
+
+    const colDefs = [
+        { field: "box" },
+        { field: "service" },
+        { field: "startCommand" },
+        { field: "stage" },
+        { field: "healthStatus" },
+        {
+            field: "Start/Stop",
+            cellRendererFramework: (params) => (
+                <>
+                    <button onClick={() => getAction(params.data, "true")}>Start</button>
+                    <button onClick={() => getAction(params.data, "false")}>Stop</button>
+                </>
+            ),
+        },
+    ];
+
+    return (
+        <div>
+            <div className="content">
+                <div className="grid-container">
+                    <div className="ag-theme-quartz ag-grid-full-width">
+                        <AgGridReact
+                            rowData={rowData}
+                            columnDefs={colDefs}
+                        />
+                    </div>
+                </div>
+                <div className="service-search">
+                    <h2>Find Service by Name</h2>
+                    <div className="input-container">
+                        <input
+                            type="text"
+                            value={service}
+                            onChange={(e) => setService(e.target.value)}
+                            placeholder="Enter service name"
+                        />
+                        <button onClick={fetchServiceByName} className="fetch-button">Fetch Service</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default GridExample;
