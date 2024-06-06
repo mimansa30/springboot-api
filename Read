@@ -1,0 +1,18 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+// Inside the init() method:
+
+@PostConstruct
+public void init() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    try (BufferedReader reader = new BufferedReader(new FileReader("path/to/ServiceData.json"))) {
+        StringBuilder jsonData = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            jsonData.append(line);
+        }
+        services = Arrays.asList(mapper.readValue(jsonData.toString(), Map[].class));
+    }
+}
