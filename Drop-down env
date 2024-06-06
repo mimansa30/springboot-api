@@ -1,0 +1,16 @@
+import React from 'react';
+
+const EnvironmentDropdown = ({ environment, setEnvironment }) => {
+    const environments = ["DEV", "UAT"];
+
+    return (
+        <select value={environment} onChange={(e) => setEnvironment(e.target.value)} style={{ marginRight: '10px' }}>
+            <option value="">Select Environment</option>
+            {environments.map(env => (
+                <option key={env} value={env}>{env}</option>
+            ))}
+        </select>
+    );
+};
+
+export default EnvironmentDropdown;
