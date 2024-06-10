@@ -1,0 +1,60 @@
+package org.example.services;
+
+import org.example.entities.ApiResponse;
+import org.example.entities.ServiceAction;
+import org.example.entities.ServiceDetails;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+@Service
+public class ProcessOrchestratorService {
+    @Autowired
+    private SSHCommandExecutor sshCommandExecutor;
+
+    private List<ServiceDetails> services;
+
+    public ApiResponse executeActionForService(String serviceName, ServiceAction action) {
+        switch (action) {
+            case START:
+                return startService(serviceName);
+            case STOP:
+                return stopService(serviceName);
+            case HEALTH_CHECK:
+                return healthCheck(serviceName);
+            default:
+                return ApiResponse.builder().response("Invalid action").build();
+        }
+    }
+
+    public List<ServiceDetails> getAllServices() {
+        return services;
+    }
+
+    public ApiResponse healthCheck(String serviceName) {
+        for (ServiceDetails serviceDetails : services) {
+            if (serviceDetails.getService().equals(serviceName)) {
+                String response = sshCommandExecutor.executeCommand(serviceDetails.getHealthCommand());
+                if (response.contains(serviceDetails.getServiceName())) {
+                    return ApiResponse.builder().response("Running").build();
+                } else {
+                    return ApiResponse.builder().response("Not Running").build();
+                }
+            }
+        }
+        return ApiResponse.builder().response("Service not found").build();
+    }
+
+    private ApiResponse startService(String serviceName) {
+        // Implement start service logic
+        return ApiResponse.builder().response("Service started").build();
+    }
+
+    private ApiResponse stopService(String serviceName) {
+        // Implement stop service logic
+        return ApiResponse.builder().response("Service stopped").build();
+    }
+}
