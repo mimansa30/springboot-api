@@ -1,0 +1,50 @@
+package org.example.services;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
+import org.example.entities.ApiResponse;
+import org.example.entities.ServiceAction;
+import org.example.entities.ServiceDetails;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@Slf4j
+public class HealthMonitorService {
+    private Map<String, String> cache = new HashMap<>();
+    private List<ServiceDetails> services;
+
+    @Autowired
+    private ProcessOrchestratorService processOrchestratorService;
+
+    private void readAllServicesFromFile() {
+        Type listType = new TypeToken<List<ServiceDetails>>() {}.getType();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("path/to/boxDetails.json"))) {
+            services = new Gson().fromJson(bufferedReader, listType);
+        } catch (Exception e) {
+            log.error("Exception occurred while reading services from file", e);
+        }
+    }
+
+    public Map<String, String> createCache(ServiceAction action) {
+        readAllServicesFromFile();
+        for (ServiceDetails serviceDetails : services) {
+            String serviceName = serviceDetails.getServiceName();
+            ApiResponse response = processOrchestratorService.executeActionForService(serviceDetails.getService(), action);
+            if ("Running".equalsIgnoreCase(response.getResponse())) {
+                cache.put(serviceName, "green");
+            } else {
+                cache.put(serviceName, "red");
+            }
+        }
+        return cache;
+    }
+}
