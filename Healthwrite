@@ -1,0 +1,72 @@
+package org.example.services;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
+import org.example.entities.ApiResponse;
+import org.example.entities.ServiceAction;
+import org.example.entities.ServiceDetails;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Slf4j
+@Service
+public class HealthMonitorService {
+
+    @Autowired
+    private ProcessOrchestratorService processOrchestratorService;
+
+    private List<ServiceDetails> services;
+
+    private void readAllServicesFromFile() {
+        Type listType = new TypeToken<List<ServiceDetails>>() {}.getType();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("path/to/boxDetails.json"))) {
+            services = new Gson().fromJson(bufferedReader, listType);
+        } catch (IOException e) {
+            log.error("Exception occurred while reading services from file", e);
+            throw new RuntimeException("Failed to read services", e);
+        }
+    }
+
+    private void writeAllServicesToFile() {
+        try (FileWriter writer = new FileWriter("path/to/boxDetails.json")) {
+            new Gson().toJson(services, writer);
+        } catch (IOException e) {
+            log.error("Exception occurred while writing services to file", e);
+            throw new RuntimeException("Failed to write services", e);
+        }
+    }
+
+    public List<ServiceDetails> updateHealthStatusForAllServices() {
+        log.info("Updating health status for all services");
+        readAllServicesFromFile();
+
+        for (ServiceDetails serviceDetails : services) {
+            String serviceName = serviceDetails.getServiceName();
+            try {
+                log.info("Executing health check for service: {}", serviceName);
+                ApiResponse response = processOrchestratorService.executeActionForService(serviceDetails.getService(), ServiceAction.HEALTH_CHECK);
+                log.info("Response: {}", response);
+
+                String healthStatus = "Not Running";
+                if ("Running".equalsIgnoreCase(response.getResponse())) {
+                    healthStatus = "Running";
+                }
+                serviceDetails.setHealthStatus(healthStatus); // Assuming ServiceDetails has a field for health status
+            } catch (Exception e) {
+                log.error("Exception occurred while checking health for service: {}", serviceName, e);
+                serviceDetails.setHealthStatus("Unknown");
+            }
+        }
+
+        writeAllServicesToFile();
+        return services;
+    }
+}
