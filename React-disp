@@ -1,0 +1,99 @@
+// apiService.js
+export const fetchHealthCheckData = async () => {
+    const response = await fetch('/api/service-map', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ serviceAction: 'HEALTH_CHECK' })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch health check data');
+    }
+    return await response.json();
+};
+
+
+components 
+// HealthCheckGrid.js
+import React, { useEffect, useState } from 'react';
+import { fetchHealthCheckData } from './apiService';
+
+const HealthCheckGrid = () => {
+    const [healthData, setHealthData] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const getData = async () => {
+            try {
+                const data = await fetchHealthCheckData();
+                setHealthData(data);
+                setLoading(false);
+            } catch (error) {
+                setError(error);
+                setLoading(false);
+            }
+        };
+        getData();
+    }, []);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+
+    return (
+        <table>
+            <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Health Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {Object.entries(healthData).map(([serviceName, status]) => (
+                    <tr key={serviceName}>
+                        <td>{serviceName}</td>
+                        <td style={{ color: status === 'green' ? 'green' : 'red' }}>
+                            {status}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+};
+
+export default HealthCheckGrid;
+
+
+//render it
+// App.js
+import React from 'react';
+import HealthCheckGrid from './HealthCheckGrid';
+
+function App() {
+    return (
+        <div className="App">
+            <h1>Service Health Check</h1>
+            <HealthCheckGrid />
+        </div>
+    );
+}
+
+export default App;
+
+//style.css
+/* App.css */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
