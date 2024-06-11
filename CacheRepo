@@ -1,0 +1,51 @@
+package org.example.repositories;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
+import org.example.entities.ServiceDetails;
+import org.springframework.stereotype.Repository;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Repository
+public class CacheRepository {
+
+    private Map<String, ServiceDetails> serviceCache = new HashMap<>();
+    private final String fileName = "path/to/boxDetails.json"; // Update this path as needed
+
+    public void init() {
+        readAllServicesFromFile();
+    }
+
+    private void readAllServicesFromFile() {
+        log.info("Loading services from file: {}", fileName);
+        Type mapType = new TypeToken<Map<String, ServiceDetails>>() {}.getType();
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName))) {
+            serviceCache = new Gson().fromJson(bufferedReader, mapType);
+            log.info("Loaded services: {}", serviceCache.keySet());
+        } catch (IOException e) {
+            log.error("Exception occurred while reading services from file", e);
+            throw new RuntimeException("Failed to read services", e);
+        }
+    }
+
+    public Map<String, ServiceDetails> getServiceCache() {
+        return serviceCache;
+    }
+
+    public ServiceDetails getServiceByName(String serviceName) {
+        return serviceCache.get(serviceName);
+    }
+
+    public void updateService(ServiceDetails serviceDetails) {
+        serviceCache.put(serviceDetails.getServiceName(), serviceDetails);
+    }
+}
