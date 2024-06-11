@@ -1,0 +1,53 @@
+// HealthCheckGrid.js
+import React, { useEffect, useState } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { fetchHealthCheckData } from './apiService';
+
+const HealthCheckGrid = () => {
+    const [rowData, setRowData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const getData = async () => {
+            try {
+                const data = await fetchHealthCheckData();
+                const formattedData = Object.entries(data).map(([serviceName, status]) => ({
+                    serviceName,
+                    status,
+                }));
+                setRowData(formattedData);
+                setLoading(false);
+            } catch (error) {
+                setError(error);
+                setLoading(false);
+            }
+        };
+        getData();
+    }, []);
+
+    const columnDefs = [
+        { headerName: 'Service Name', field: 'serviceName', sortable: true, filter: true },
+        { headerName: 'Health Status', field: 'status', cellStyle: params => ({
+            color: params.value === 'green' ? 'green' : 'red',
+        }) },
+    ];
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+
+    return (
+        <div className="ag-theme-alpine" style={{ height: 400, width: 600 }}>
+            <AgGridReact
+                rowData={rowData}
+                columnDefs={columnDefs}
+                defaultColDef={{ resizable: true }}
+            />
+        </div>
+    );
+};
+
+export default HealthCheckGrid;
+
