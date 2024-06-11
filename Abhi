@@ -1,0 +1,70 @@
+package org.example.repositories;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
+import org.example.entities.ServiceDetails;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
+@Repository
+public class CacheRepository {
+
+    private Map<String, ServiceDetails> serviceCache = new HashMap<>();
+    private final String fileName = "path/to/boxDetails.json"; // Update this path as needed
+
+    @PostConstruct
+    public void init() {
+        List<ServiceDetails> services = readAllServicesFromFile();
+        createServiceCache(services);
+    }
+
+    private List<ServiceDetails> readAllServicesFromFile() {
+        log.info("Loading services from file: {}", fileName);
+        Type listType = new TypeToken<List<ServiceDetails>>() {}.getType();
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName))) {
+            List<ServiceDetails> services = new Gson().fromJson(bufferedReader, listType);
+            log.info("Services loaded: {}", services);
+            return services;
+        } catch (IOException e) {
+            log.error("Exception occurred while reading services from file", e);
+            throw new RuntimeException("Failed to read services", e);
+        }
+    }
+
+    private void createServiceCache(List<ServiceDetails> services) {
+        log.info("Creating service cache");
+        for (ServiceDetails serviceDetails : services) {
+            serviceCache.put(serviceDetails.getServiceName(), serviceDetails);
+        }
+        log.info("Service cache created with services: {}", serviceCache.keySet());
+    }
+
+    public Map<String, ServiceDetails> getServiceCache() {
+        log.info("Fetching service cache: {}", serviceCache);
+        return serviceCache;
+    }
+
+    public ServiceDetails getServiceByName(String serviceName) {
+        return serviceCache.get(serviceName);
+    }
+
+    public void updateService(ServiceDetails serviceDetails) {
+        serviceCache.put(serviceDetails.getServiceName(), serviceDetails);
+    }
+    
+    // Function to get all services, simply returning the cache
+    public Map<String, ServiceDetails> getAllServices() {
+        return getServiceCache();
+    }
+}
