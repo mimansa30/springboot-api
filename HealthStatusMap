@@ -1,0 +1,57 @@
+package org.example.services;
+
+import lombok.extern.slf4j.Slf4j;
+import org.example.entities.ApiResponse;
+import org.example.entities.ServiceAction;
+import org.example.entities.ServiceDetails;
+import org.example.repositories.CacheRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Service
+public class HealthMonitorService {
+
+    @Autowired
+    private ProcessOrchestratorService processOrchestratorService;
+
+    @Autowired
+    private CacheRepository cacheRepository;
+
+    public Map<String, ServiceDetails> getServiceCache() {
+        return cacheRepository.getServiceCache();
+    }
+
+    public Map<String, String> updateAndGetHealthStatusMap() {
+        log.info("Updating health status for all services");
+
+        Map<String, ServiceDetails> services = cacheRepository.getServiceCache();
+        Map<String, String> healthStatusMap = new HashMap<>();
+
+        for (Map.Entry<String, ServiceDetails> entry : services.entrySet()) {
+            ServiceDetails serviceDetails = entry.getValue();
+            String serviceName = serviceDetails.getServiceName();
+            try {
+                log.info("Executing health check for service: {}", serviceName);
+                ApiResponse response = processOrchestratorService.executeActionForService(serviceDetails.getService(), ServiceAction.HEALTH_CHECK);
+                log.info("Response: {}", response);
+
+                String healthStatus = "Running".equalsIgnoreCase(response.getResponse()) ? "green" : "red";
+                serviceDetails.setHealthStatus(healthStatus);
+                cacheRepository.updateService(serviceDetails);
+                healthStatusMap.put(serviceName, healthStatus);
+            } catch (Exception e) {
+                log.error("Exception occurred during health check for service: {}", serviceName, e);
+                serviceDetails.setHealthStatus("red");
+                cacheRepository.updateService(serviceDetails);
+                healthStatusMap.put(serviceName, "red");
+            }
+        }
+
+        return healthStatusMap;
+    }
+}
+
