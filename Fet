@@ -1,0 +1,11 @@
+useEffect(() => {
+    fetch('http://localhost:8080/api/service-map')
+      .then(response => response.json())
+      .then(data => {
+        const services = Object.values(data);
+        setRowData(services);
+      })
+      .catch(error => {
+        console.error("There was an error fetching the services!", error);
+      });
+  }, []);
