@@ -1,0 +1,80 @@
+// FetchServiceByName.js
+import React, { useState } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+const FetchServiceByName = () => {
+  const [serviceName, setServiceName] = useState('');
+  const [serviceDetails, setServiceDetails] = useState(null);
+  const [error, setError] = useState(null);
+
+  const columnDefs = [
+    { headerName: 'Service Name', field: 'serviceName', sortable: true, filter: true },
+    { headerName: 'Box', field: 'box', sortable: true, filter: true },
+    { headerName: 'Environment', field: 'environment', sortable: true, filter: true },
+    { headerName: 'URL', field: 'url', sortable: true, filter: true },
+    { headerName: 'User', field: 'user', sortable: true, filter: true },
+    { headerName: 'Start Command', field: 'startCommand', sortable: true, filter: true },
+    { headerName: 'Stop Command', field: 'stopCommand', sortable: true, filter: true },
+    { headerName: 'Region', field: 'region', sortable: true, filter: true },
+    { headerName: 'Process Name', field: 'processName', sortable: true, filter: true },
+    { headerName: 'Health Command', field: 'healthCommand', sortable: true, filter: true },
+    { headerName: 'Health Status', field: 'healthStatus', sortable: true, filter: true, cellStyle: params => ({ backgroundColor: params.value === 'green' ? 'lightgreen' : 'lightcoral' }) }
+  ];
+
+  const handleInputChange = (event) => {
+    setServiceName(event.target.value);
+  };
+
+  const handleFetchService = () => {
+    fetch('http://localhost:8080/api/service-by-name', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ serviceName })
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setServiceDetails([data]);
+        setError(null);
+      })
+      .catch(error => {
+        setError(error.message);
+        setServiceDetails(null);
+      });
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <input
+          type="text"
+          value={serviceName}
+          onChange={handleInputChange}
+          placeholder="Enter service name"
+        />
+        <button onClick={handleFetchService}>Fetch Service</button>
+      </div>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {serviceDetails && (
+        <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
+          <AgGridReact
+            columnDefs={columnDefs}
+            rowData={serviceDetails}
+            pagination={true}
+            paginationPageSize={10}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FetchServiceByName;
