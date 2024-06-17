@@ -1,0 +1,49 @@
+import { Client } from '@stomp/stompjs';
+
+class WebSocketService {
+    constructor() {
+        this.client = new Client({
+            brokerURL: 'ws://localhost:8080/po-websocket',
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        this.client.onConnect = () => {
+            console.log('Connected to WebSocket');
+
+            // Subscribe to the topic
+            this.client.subscribe('/topic/hi-hello-response', (message) => {
+                console.log('Received from server:', message.body);
+
+                // Respond to the server
+                this.sendMessage('/app/hi-hello', { message: 'hi server' });
+            });
+        };
+
+        this.client.onStompError = (frame) => {
+            console.error('Broker reported error: ' + frame.headers['message']);
+            console.error('Additional details: ' + frame.body);
+        };
+
+        this.client.activate();
+    }
+
+    sendMessage(destination, body) {
+        if (this.client.connected) {
+            this.client.publish({
+                destination: destination,
+                body: JSON.stringify(body),
+            });
+        } else {
+            console.error('WebSocket connection not established.');
+        }
+    }
+
+    disconnect() {
+        this.client.deactivate();
+    }
+}
+
+const webSocketService = new WebSocketService();
+export default webSocketService;
