@@ -1,0 +1,30 @@
+// src/WebSocketCommunication.js (or any other file name)
+import React, { useEffect } from 'react';
+import webSocketService from './services/WebSocketService'; // Adjust the import path as necessary
+
+function WebSocketCommunication() {
+    useEffect(() => {
+        // Connect to WebSocket and listen for a specific topic if needed
+        const subscription = webSocketService.client.subscribe('/topic/hi-hello-response', (message) => {
+            console.log('Received from server:', message.body);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+            webSocketService.disconnect();
+        };
+    }, []);
+
+    const sendHiHelloMessage = () => {
+        console.log('Sending message: Hi, hello!');
+        webSocketService.sendMessage('/app/hi-hello', { message: 'Hi, hello!' });
+    };
+
+    return (
+        <div>
+            <button onClick={sendHiHelloMessage}>Send Hi-Hello Message</button>
+        </div>
+    );
+}
+
+export default WebSocketCommunication;
