@@ -1,0 +1,40 @@
+// src/services/WebSocketService.js
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+
+class WebSocketService {
+    constructor() {
+        this.client = new Client({
+            brokerURL: 'ws://localhost:8080/po-websocket', // Direct WebSocket connection
+            webSocketFactory: () => new SockJS('/po-websocket'), // Use SockJS for fallback
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        this.client.onConnect = () => {
+            console.log('Connected to WebSocket');
+        };
+
+        this.client.onStompError = (frame) => {
+            console.error('Broker reported error: ' + frame.headers['message']);
+            console.error('Additional details: ' + frame.body);
+        };
+
+        this.client.activate();
+    }
+
+    sendMessage(destination, body) {
+        this.client.publish({
+            destination: destination,
+            body: JSON.stringify(body),
+        });
+    }
+
+    disconnect() {
+        this.client.deactivate();
+    }
+}
+
+const webSocketService = new WebSocketService();
+export default webSocketService;
