@@ -1,0 +1,92 @@
+import React, { useState, useEffect, useRef } from "react";
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import "./Grid.styles.css";
+import CustomButtonComponent from "../CustomButtonComponent";
+import "ag-grid-enterprise";
+import { addSubscription, sendMessage } from "../../api/WebSocketService";
+
+const GET_ALL_SERVICES = "/user/queue/getAllServices";
+const UPDATE_SERVICES = "/topic/updates/service";
+
+const GridExample = () => {
+    const gridRef = useRef();
+    const [gridRowData, setGridRowData] = useState([]);
+
+    const getAllServicesCallback = (message) => {
+        let data = JSON.parse(message.body);
+        const services = Object.values(data);
+        setGridRowData(services);
+        console.log(gridRef.current.api);
+    };
+
+    const serviceUpdatesCallback = (message) => {
+        let updatedData = JSON.parse(message.body);
+        const updatedServices = Object.values(updatedData);
+
+        setGridRowData((prevRowData) => {
+            const updatedRowData = [...prevRowData];
+            const serviceMap = new Map();
+
+            // Add current services to the map
+            updatedRowData.forEach((service) => {
+                serviceMap.set(service.service, service);
+            });
+
+            // Merge updated services
+            updatedServices.forEach((updatedService) => {
+                serviceMap.set(updatedService.service, updatedService);
+            });
+
+            return Array.from(serviceMap.values());
+        });
+    };
+
+    useEffect(() => {
+        addSubscription(GET_ALL_SERVICES, getAllServicesCallback);
+        sendMessage("/v1/get-query-response", {});
+    }, []);
+
+    useEffect(() => {
+        addSubscription(UPDATE_SERVICES, serviceUpdatesCallback);
+    }, []);
+
+    const colDefs = [
+        { field: "environment", filter: "agSetColumnFilter", floatingFilter: true },
+        { field: "region", filter: "agSetColumnFilter", floatingFilter: true },
+        { field: "service", filter: true, floatingFilter: true },
+        { field: "stage" },
+        { field: "startCommand" },
+        {
+            headerName: "healthStatus",
+            field: "healthStatus",
+            cellStyle: (params) => ({
+                color: params.value === "running" ? "green" : "red",
+            }),
+        },
+        {
+            headerName: "Action",
+            field: "Action",
+            cellRenderer: CustomButtonComponent,
+        },
+    ];
+
+    return (
+        <div>
+            <div className="content">
+                <div className="grid-container">
+                    <div className="ag-theme-quartz ag-grid-full-width">
+                        <AgGridReact
+                            ref={gridRef}
+                            rowData={gridRowData}
+                            columnDefs={colDefs}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default GridExample;
