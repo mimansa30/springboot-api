@@ -1,0 +1,14 @@
+{
+        field: "healthStatus",
+        enableCellChangeFlash: true,
+        width: 350,
+        cellRenderer: (params) => {
+            const checked = params.value === "running";
+            const color = checked ? "green" : "red";
+            return `
+                <div style="display: flex; align-items: center;">
+                    <input type="checkbox" ${checked ? "checked" : ""} style="margin-right: 5px;"/>
+                    <span style="color: ${color};">${params.value}</span>
+                </div>
+            `;
+        }
