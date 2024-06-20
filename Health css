@@ -1,0 +1,12 @@
+/* HealthStatusRenderer.css */
+.health-status input[type="checkbox"] {
+    accent-color: initial;
+}
+
+.health-status.running input[type="checkbox"] {
+    accent-color: green;
+}
+
+.health-status.not-running input[type="checkbox"] {
+    accent-color: red;
+}
