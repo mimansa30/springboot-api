@@ -1,0 +1,22 @@
+/* HealthStatusRenderer.css */
+.health-status {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.health-status input[type="checkbox"] {
+    display: none; /* Hide the actual checkbox */
+}
+
+.health-status .symbol {
+    width: 20px;
+    height: 20px;
+    font-size: 16px; /* Adjust size as needed */
+    color: ${({ isRunning }) => (isRunning ? '#5cb85c' : '#d9534f')}; /* Green or red color for symbols */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid transparent; /* Optional: Add border for box */
+    border-radius: 3px;
+}
