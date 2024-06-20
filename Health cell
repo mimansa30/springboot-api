@@ -1,0 +1,19 @@
+import React from 'react';
+import './HealthStatusRenderer.css'; // Import the CSS file
+
+const HealthStatusRenderer = (props) => {
+    const isRunning = props.value === "running";
+
+    return (
+        <div className={`health-status ${isRunning ? 'running' : 'not-running'}`}>
+            {isRunning ? (
+                <span className="checkmark">✓</span>
+            ) : (
+                <span className="crossmark">❌</span>
+            )}
+        </div>
+    );
+};
+
+export default HealthStatusRenderer;
+
