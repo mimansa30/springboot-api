@@ -1,0 +1,28 @@
+/* HealthStatusRenderer.css */
+.health-status {
+    display: flex;
+    align-items: center;
+}
+
+.health-status input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    margin-right: 5px;
+}
+
+.health-status input[type="checkbox"]:checked {
+    background-color: #5cb85c; /* Green background for checked state */
+    border-color: #4cae4c;
+}
+
+.health-status .cross-box {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #d9534f; /* Red color for cross box */
+    margin-left: 3px;
+}
