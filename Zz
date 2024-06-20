@@ -1,0 +1,47 @@
+/* HealthStatusRenderer.css */
+.health-status {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.health-status input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-right: 5px;
+    position: relative;
+    cursor: default; /* Ensure cursor is default */
+}
+
+.health-status input[type="checkbox"]:checked + .checkmark {
+    visibility: visible;
+}
+
+.health-status input[type="checkbox"]:checked + .crossmark {
+    visibility: hidden;
+}
+
+.health-status .checkmark,
+.health-status .crossmark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px; /* Adjust size as needed */
+    color: transparent;
+}
+
+.health-status .checkmark {
+    color: #5cb85c; /* Green color for checkmark */
+    visibility: hidden;
+}
+
+.health-status .crossmark {
+    color: #d9534f; /* Red color for crossmark */
+    visibility: visible;
+}
