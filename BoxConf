@@ -1,0 +1,46 @@
+package org.processorchestrator.config;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Component
+@Configuration
+@ConfigurationProperties(prefix = "po")
+public class BoxConfiguration implements InitializingBean {
+
+    private Map<String, EnvProperties> dev = new HashMap<>();
+    private Map<String, EnvProperties> qa = new HashMap<>();
+    private Map<String, Map<String, EnvProperties>> regionMap = new HashMap<>();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        regionMap.put("dev", dev);
+        regionMap.put("qa", qa);
+        
+        log.info("Properties loaded:");
+        regionMap.forEach((region, envPropertiesMap) -> {
+            envPropertiesMap.forEach((key, value) -> {
+                log.info("Region: {}, Key: {}, Value: {}", region, key, value);
+            });
+        });
+    }
+
+    public EnvProperties getEnvProperties(String region, String key) {
+        return regionMap.get(region).get(key);
+    }
+
+    public void setDev(Map<String, EnvProperties> dev) {
+        this.dev = dev;
+    }
+
+    public void setQa(Map<String, EnvProperties> qa) {
+        this.qa = qa;
+    }
+}
