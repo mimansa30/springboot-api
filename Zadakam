@@ -1,0 +1,37 @@
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Component
+@Configuration
+@ConfigurationProperties(prefix = "po")
+public class BoxConfiguration implements InitializingBean {
+
+    private Map<String, EnvProperties> properties = new HashMap<>();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Properties loaded:");
+        properties.forEach((key, value) -> log.info("Property: Key: {}, Value: {}", key, value));
+    }
+
+    public EnvProperties getEnvProperties(String region, String environment, String box) {
+        String key = buildKey(region, environment, box);
+        return properties.get(key);
+    }
+
+    private String buildKey(String region, String environment, String box) {
+        return String.format("po.%s.%s.box", environment, region);
+    }
+
+    public void setProperties(Map<String, EnvProperties> properties) {
+        this.properties = properties;
+    }
+}
