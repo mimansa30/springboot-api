@@ -1,0 +1,51 @@
+package org.processorchestrator.services;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.processorchestrator.models.EnvProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+@Component
+@PropertySources({
+    @PropertySource("file:${dev}/env.properties"),
+    @PropertySource("file:${qa}/env.properties")
+})
+@Data
+@Slf4j
+public class BoxConfiguration {
+
+    private final Environment env;
+
+    public BoxConfiguration(Environment env) {
+        this.env = env;
+    }
+
+    public EnvProperties getEnvProperties(String region, String environment, String box) {
+        String prefix = "po." + environment + "." + region + ".";
+        EnvProperties envProperties = new EnvProperties();
+
+        String configuredHostname = env.getProperty(prefix + "hostname");
+        String configuredUser = env.getProperty(prefix + "user");
+        String configuredBox = env.getProperty(prefix + "box");
+        String configuredScriptPath = env.getProperty(prefix + "script.path");
+
+        log.info("Region: {}, Environment: {}, Box: {}", region, environment, box);
+        log.info("Loaded Properties: Hostname: {}, User: {}, Configured Box: {}, Script Path: {}",
+                 configuredHostname, configuredUser, configuredBox, configuredScriptPath);
+
+        if (configuredBox != null && configuredBox.equalsIgnoreCase(box)) {
+            envProperties.setHostname(configuredHostname);
+            envProperties.setUser(configuredUser);
+            envProperties.setBox(configuredBox);
+            envProperties.setScriptPath(configuredScriptPath);
+            return envProperties;
+        } else {
+            log.warn("Configured box '{}' does not match the input box '{}'.", configuredBox, box);
+            return null;
+        }
+    }
+}
