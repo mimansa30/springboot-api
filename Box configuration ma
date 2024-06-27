@@ -1,0 +1,47 @@
+package org.processorchestrator.services;
+
+import lombok.Data;
+import org.processorchestrator.models.EnvProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+@PropertySources({
+    @PropertySource("file:${dev}/env.properties"),
+    @PropertySource("file:${qa}/env.properties")
+})
+@Data
+public class BoxConfiguration {
+
+    private final Environment env;
+
+    public BoxConfiguration(Environment env) {
+        this.env = env;
+    }
+
+    public EnvProperties getEnvProperties(String region, String environment, String box) {
+        String prefix = "po." + environment + "." + region + ".";
+        EnvProperties envProperties = new EnvProperties();
+        
+        String hostname = env.getProperty(prefix + "hostname");
+        String user = env.getProperty(prefix + "user");
+        String configuredBox = env.getProperty(prefix + "box");
+        String scriptPath = env.getProperty(prefix + "script.path");
+
+        if (configuredBox != null && configuredBox.equals(box)) {
+            envProperties.setHostname(hostname);
+            envProperties.setUser(user);
+            envProperties.setBox(configuredBox);
+            envProperties.setScriptPath(scriptPath);
+            return envProperties;
+        } else {
+            return null;
+        }
+    }
+}
