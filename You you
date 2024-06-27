@@ -1,0 +1,29 @@
+package org.processorchestrator.services;
+
+import lombok.Data;
+import org.processorchestrator.models.EnvProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+@ConfigurationProperties(prefix = "po")
+@Data
+public class BoxConfiguration {
+
+    private Map<String, EnvProperties> dev = new HashMap<>();
+    private Map<String, EnvProperties> qa = new HashMap<>();
+    
+    public EnvProperties getEnvProperties(String region, String environment, String box) {
+        Map<String, EnvProperties> propertiesMap = environment.equals("dev") ? dev : qa;
+        String key = buildKey(region, box);
+        return propertiesMap.get(key);
+    }
+
+    private String buildKey(String region, String box) {
+        return String.format("po.%s.%s.box", region, box);
+    }
+}
