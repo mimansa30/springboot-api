@@ -1,0 +1,53 @@
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Component
+@Configuration
+@ConfigurationProperties(prefix = "po")
+public class BoxConfiguration implements InitializingBean {
+
+    private Map<String, EnvProperties> dev = new HashMap<>();
+    private Map<String, EnvProperties> emea = new HashMap<>();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Properties loaded:");
+        dev.forEach((key, value) -> log.info("DEV Property: Key: {}, Value: {}", key, value));
+        emea.forEach((key, value) -> log.info("EMEA Property: Key: {}, Value: {}", key, value));
+    }
+
+    public EnvProperties getEnvProperties(String region, String environment, String box) {
+        String key = buildKey(environment, region, box);
+        return findMatchingProperty(key);
+    }
+
+    private String buildKey(String environment, String region, String box) {
+        return String.format("po.%s.%s.%s", environment, region, box);
+    }
+
+    private EnvProperties findMatchingProperty(String key) {
+        if (dev.containsKey(key)) {
+            return dev.get(key);
+        } else if (emea.containsKey(key)) {
+            return emea.get(key);
+        } else {
+            return null;
+        }
+    }
+
+    public void setDev(Map<String, EnvProperties> dev) {
+        this.dev = dev;
+    }
+
+    public void setEmea(Map<String, EnvProperties> emea) {
+        this.emea = emea;
+    }
+}
