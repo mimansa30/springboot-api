@@ -1,0 +1,83 @@
+// WebSocketService.jsx
+import { Client } from "@stomp/stompjs";
+import { toast } from "react-toastify";
+import { warn, error, log } from "../logger/logger";
+
+let client;
+
+const initClient = () => {
+  client = new Client({
+    brokerURL: "your-broker-url", // Replace with your actual broker URL
+    connectHeaders: {
+      login: "Mimansa",
+      passcode: "123456",
+    },
+    debug: (str) => {
+      warn(str);
+    },
+    onConnect: () => {
+      console.log("Connected");
+    },
+    heartbeatIncoming: 1000,
+    heartbeatOutgoing: 1000,
+    onStompError: (frame) => {
+      error(frame);
+      toast.error("STOMP Error occurred!");
+    },
+    onWebSocketError: (frame) => {
+      error(frame);
+      toast.error("WebSocket Error occurred!");
+    },
+    onWebSocketClose: (frame) => {
+      log(frame);
+      toast.error("WebSocket Connection Closed!");
+    },
+    onUnhandledMessage: (message) => {
+      log(message);
+    },
+  });
+};
+
+export const connectToServer = () => {
+  initClient();
+  try {
+    client.activate();
+  } catch (error) {
+    toast.error('Error activating STOMP client!');
+  }
+};
+
+export const disconnectFromServer = () => {
+  try {
+    client.deactivate();
+  } catch (error) {
+    toast.error('Error deactivating STOMP client!');
+  }
+};
+
+export const addSubscription = (destination, callback) => {
+  if (client && client.connected) {
+    try {
+      client.subscribe(destination, callback);
+    } catch (error) {
+      toast.error('Error subscribing to destination!');
+    }
+  } else {
+    toast.error('There is no underlying STOMP connection');
+  }
+};
+
+export const sendMessage = (destination, body) => {
+  if (client && client.connected) {
+    try {
+      client.publish({
+        destination: destination,
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      toast.error('Error sending message!');
+    }
+  } else {
+    toast.error('There is no underlying STOMP connection');
+  }
+};
