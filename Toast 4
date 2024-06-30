@@ -1,0 +1,57 @@
+// WebSocketService.jsx
+import { Client } from "@stomp/stompjs";
+import { toast } from "react-toastify";
+import { warn, error, log } from "../logger/logger";
+
+let client = new Client();
+
+const initClient = () => {
+  client.configure({
+    brokerURL: "your-broker-url", // Ensure to replace with your actual broker URL
+    login: "Mimansa",
+    passcode: "123456",
+    debug: (str) => {
+      warn(str);
+    },
+    onConnect: () => {
+      console.log("Connected");
+    },
+    heartbeatIncoming: 1000,
+    heartbeatOutgoing: 1000,
+    onStompError: (frame) => {
+      error(frame);
+      toast.error("STOMP Error");
+    },
+    onWebSocketError: (frame) => {
+      error(frame);
+      toast.error("WebSocket Error");
+    },
+    onWebSocketClose: (frame) => {
+      log(frame);
+      toast.error("WebSocket Connection Closed");
+    },
+    onUnhandledMessage: (message) => {
+      log(message);
+    },
+  });
+};
+
+export const connectToServer = () => {
+  initClient();
+  client.activate();
+};
+
+export const disconnectFromServer = () => {
+  client.deactivate();
+};
+
+export const addSubscription = (destination, callback) => {
+  client.subscribe(destination, callback);
+};
+
+export const sendMessage = (destination, body) => {
+  client.publish({
+    destination: destination,
+    body: JSON.stringify(body),
+  });
+};
