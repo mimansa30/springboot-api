@@ -1,0 +1,59 @@
+// WebSocketService.jsx
+import { Client } from "@stomp/stompjs";
+import { toast } from "react-toastify";
+import { warn, error, log } from "../logger/logger";
+
+let client = new Client();
+
+const initClient = () => {
+  client.configure({
+    login: "Mimansa",
+    passcode: "123456",
+    debug: (str) => {
+      warn(str);
+    },
+    onConnect: () => {
+      console.log("Connected");
+      client.resolvePromise();
+    },
+    heartbeatIncoming: 1000,
+    heartbeatOutgoing: 1000,
+    onWebSocketError: (frame) => {
+      error(frame);
+      toast.error("WebSocket Error");
+      client.rejectPromise(frame);
+    },
+    onWebSocketClose: (frame) => {
+      log(frame);
+      toast.error("WebSocket Connection Closed");
+      client.rejectPromise(frame);
+    },
+    onUnhandledMessage: (message) => {
+      log(message);
+    },
+  });
+};
+
+export const connectToServer = () => {
+  return new Promise((resolve, reject) => {
+    client.resolvePromise = resolve;
+    client.rejectPromise = reject;
+    initClient();
+    client.activate();
+  });
+};
+
+export const disconnectFromServer = () => {
+  client.deactivate();
+};
+
+export const addSubscription = (destination, callback) => {
+  client.subscribe(destination, callback);
+};
+
+export const sendMessage = (destination, body) => {
+  client.publish({
+    destination: destination,
+    body: JSON.stringify(body),
+  });
+};
