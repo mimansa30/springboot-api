@@ -1,0 +1,61 @@
+// WebSocketService.jsx
+import { Client } from "@stomp/stompjs";
+import { toast } from "react-toastify";
+import { warn, error, log } from "../logger/logger";
+
+let client;
+
+const initClient = () => {
+  client = new Client({
+    brokerURL: "ws://your-websocket-url",  // Replace with your WebSocket URL
+    connectHeaders: {
+      login: "Mimansa",
+      passcode: "123456",
+    },
+    debug: (str) => {
+      warn(str);
+    },
+    heartbeatIncoming: 1000,
+    heartbeatOutgoing: 1000,
+    reconnectDelay: 5000,
+    onConnect: () => {
+      log("Connected");
+      client.resolvePromise();
+    },
+    onStompError: (frame) => {
+      error(`Broker reported error: ${frame.headers['message']}`);
+      error(`Additional details: ${frame.body}`);
+      toast.error("WebSocket Error");
+      client.rejectPromise(new Error("WebSocket Error"));
+    },
+    onWebSocketClose: (frame) => {
+      log(`WebSocket closed: ${frame}`);
+      toast.error("WebSocket Connection Closed");
+      client.rejectPromise(new Error("WebSocket Connection Closed"));
+    },
+  });
+};
+
+export const connectToServer = () => {
+  return new Promise((resolve, reject) => {
+    client.resolvePromise = resolve;
+    client.rejectPromise = reject;
+    initClient();
+    client.activate();
+  });
+};
+
+export const disconnectFromServer = () => {
+  client.deactivate();
+};
+
+export const addSubscription = (destination, callback) => {
+  client.subscribe(destination, callback);
+};
+
+export const sendMessage = (destination, body) => {
+  client.publish({
+    destination: destination,
+    body: JSON.stringify(body),
+  });
+};
