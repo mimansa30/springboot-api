@@ -1,0 +1,27 @@
+// HomePage.jsx
+import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import GridExample from "../components/grid/Grid.component";
+import { connectToServer } from "../../api/WebSocketService";
+
+const HomePage = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    connectToServer();
+
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 2000);
+  }, []);
+
+  return (
+    <div>
+      <ToastContainer />
+      {isLoaded ? <GridExample /> : <div>Loading...</div>}
+    </div>
+  );
+};
+
+export default HomePage;
