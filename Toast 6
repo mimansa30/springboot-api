@@ -1,0 +1,81 @@
+import { Client } from "@stomp/stompjs";
+import { toast } from "react-toastify";
+import { warn, error, log } from "../logger/logger";
+
+let client;
+let stompErrorDisplayed = false;
+let webSocketErrorDisplayed = false;
+let webSocketCloseDisplayed = false;
+let stompConnectionErrorDisplayed = false;
+
+const initClient = () => {
+  client = new Client({
+    brokerURL: "your-broker-url", // Replace with your actual broker URL
+    connectHeaders: {
+      login: "Mimansa",
+      passcode: "123456",
+    },
+    debug: (str) => {
+      warn(str);
+    },
+    onConnect: () => {
+      console.log("Connected");
+      stompErrorDisplayed = false;  // Reset the flags once connected
+      webSocketErrorDisplayed = false;
+      webSocketCloseDisplayed = false;
+      stompConnectionErrorDisplayed = false;
+    },
+    heartbeatIncoming: 1000,
+    heartbeatOutgoing: 1000,
+    onStompError: (frame) => {
+      error(frame);
+      if (!stompErrorDisplayed) {
+        toast.error("STOMP Error occurred!");
+        stompErrorDisplayed = true;
+      }
+    },
+    onWebSocketError: (frame) => {
+      error(frame);
+      if (!webSocketErrorDisplayed) {
+        toast.error("WebSocket Error occurred!");
+        webSocketErrorDisplayed = true;
+      }
+    },
+    onWebSocketClose: (frame) => {
+      log(frame);
+      if (!webSocketCloseDisplayed) {
+        toast.error("WebSocket Connection Closed!");
+        webSocketCloseDisplayed = true;
+      }
+    },
+    onDisconnect: () => {
+      if (!stompConnectionErrorDisplayed) {
+        toast.error("There is no underlying STOMP connection!");
+        stompConnectionErrorDisplayed = true;
+      }
+    },
+    onUnhandledMessage: (message) => {
+      log(message);
+    },
+  });
+};
+
+export const connectToServer = () => {
+  initClient();
+  client.activate();
+};
+
+export const disconnectFromServer = () => {
+  client.deactivate();
+};
+
+export const addSubscription = (destination, callback) => {
+  client.subscribe(destination, callback);
+};
+
+export const sendMessage = (destination, body) => {
+  client.publish({
+    destination: destination,
+    body: JSON.stringify(body),
+  });
+};
