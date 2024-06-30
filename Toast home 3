@@ -1,0 +1,129 @@
+// Grid.component.jsx
+import { AgGridReact } from "ag-grid-react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import "ag-grid-community/styles/ag-grid.css";
+import "./Grid.styles.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import { log } from "../../logger/logger";
+import "ag-grid-enterprise";
+import { addSubscription, sendMessage } from "../../api/WebSocketService";
+import HealthStatusRenderer from "../HealthStatusRender/HealthStatusRendered";
+import { getAction } from "../CustomButtonComponent";
+import { toast } from "react-toastify";
+
+const GET_ALL_SERVICES = "/user/queue/getAllServices";
+const UPDATE_SERVICES = "/topic/updates/service";
+
+const GridExample = () => {
+  const gridRef = useRef();
+  const [gridRowData, setGridRowData] = useState([]);
+
+  const getRowId = useCallback((params) => {
+    return params.data.service;
+  }, []);
+
+  const getAllServicesCallback = (message) => {
+    try {
+      let data = JSON.parse(message.body);
+      const services = Object.values(data);
+      setGridRowData(services);
+      log("Get all services callback");
+    } catch (error) {
+      toast.error('Error processing services data!');
+      log(error);
+    }
+  };
+
+  const serviceUpdatesCallback = (message) => {
+    try {
+      let data = JSON.parse(message.body);
+      log(data);
+      log("Service update callback");
+
+      let rowNode = gridRef.current.api.getRowNode(data.service);
+      rowNode.updateData(data);
+    } catch (error) {
+      toast.error('Error updating service data!');
+      log(error);
+    }
+  };
+
+  useEffect(() => {
+    addSubscription(GET_ALL_SERVICES, getAllServicesCallback);
+    sendMessage("/v1/get-query-response", {});
+
+    addSubscription(UPDATE_SERVICES, serviceUpdatesCallback);
+  }, []);
+
+  const colDefs = [
+    { field: "environment", filter: "agSetColumnFilter", width: 200, rowGroup: true, filterParams: { values: ['DEV', 'UAT'] } },
+    { field: "region", filter: "agSetColumnFilter", width: 200, rowGroup: true, filterParams: { values: ['APAC', 'EMEA', 'AMER'] } },
+    { field: "service_name", filter: true, rowGroup: true, width: 200, rowMultiSelectWithClick: true, headerCheckboxSelection: true, rowSelection: "multiple", refreshStrategy: "rows" },
+    { field: "process_name", width: 200 },
+    { field: "host_name", width: 200 },
+    { field: "healthstatus", enableCellChangeFlash: true, width: 200, cellRenderer: HealthStatusRenderer }
+  ];
+
+  const sideBar = useMemo(() => {
+    return {
+      toolPanels: [
+        {
+          id: "columns",
+          labelDefault: "Columns",
+          labelKey: "columns",
+          iconKey: "columns",
+          toolPanel: "agColumnsToolPanel",
+          minWidth: 225,
+          width: 225,
+          maxWidth: 225,
+        },
+        {
+          id: "filters",
+          labelDefault: "Filters",
+          labelKey: "filters",
+          iconKey: "filter",
+          toolPanel: "agFiltersToolPanel",
+          minWidth: 100,
+          maxWidth: 400,
+          width: 256,
+        },
+      ],
+      position: "right",
+      defaultToolPanel: "filters",
+    };
+  }, []);
+
+  const startSelectedNodes = (action) => {
+    let rowList = gridRef.current.api.getSelectedRows();
+    for (let i = 0; i < rowList.length; i++) {
+      log("started service");
+      getAction(rowList[i].service, action);
+    }
+    console.log(rowList);
+  };
+
+  return (
+    <div>
+      <div className="content">
+        <div className="ag-theme-quartz full-width">
+          <AgGridReact
+            ref={gridRef}
+            rowData={gridRowData}
+            columnDefs={colDefs}
+            getRowId={getRowId}
+            sideBar={sideBar}
+            rowSelection="multiple"
+            rowMultiSelectWithClick={true}
+            groupSelectsChildren={true}
+          />
+        </div>
+      </div>
+      <div className="buttons">
+        <button onClick={() => startSelectedNodes("START")}>Start Selected</button>
+        <button onClick={() => startSelectedNodes("STOP")}>Stop Selected</button>
+      </div>
+    </div>
+  );
+};
+
+export default GridExample;
