@@ -1,0 +1,56 @@
+/* GridStyles.css */
+.full-width {
+  height: 800px;
+  width: 100%;
+}
+
+.ag-theme-alpine {
+  --ag-header-background-color: #f7f7f7;
+  --ag-header-foreground-color: #4b4b4b;
+  --ag-row-hover-color: #e8e8e8;
+  --ag-row-border-color: #cccccc;
+  --ag-row-foreground-color: #4b4b4b;
+}
+
+.grid-container {
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 10px 5px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .ag-theme-alpine {
+    font-size: 12px;
+  }
+
+  button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .grid-container {
+    padding: 10px;
+  }
+}
